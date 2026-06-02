@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  tracking-service:
+    build: ./tracking-service
+    container_name: tracking-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      PREDICTION_SERVICE_URL: http://prediction-service:3002
+    volumes:
+      - tracking-data:/app/data
+    restart: unless-stopped
+    networks:
+      - urbanflow
+
+  prediction-service:
+    build: ./prediction-service
+    container_name: prediction-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      TRACKING_SERVICE_URL: http://tracking-service:3001
+    volumes:
+      - prediction-data:/app/data
+    depends_on:
+      - tracking-service
+    restart: unless-stopped
+    networks:
+      - urbanflow
+
+volumes:
+  tracking-data:
+  prediction-data:
+
+networks:
+  urbanflow:
+    driver: bridge
